@@ -3,8 +3,9 @@
 #  校园版咸鱼 — 一键启动脚本
 #  安装依赖 + 初始化数据库 + 启动前后端
 #
-#  用法:  bash start.sh
+#  用法:  sh start.sh    （或 bash start.sh，两者均可）
 #  适用:  Linux / macOS / CloudStudio / Windows Git Bash
+#  注意:  脚本使用 POSIX 语法，兼容 dash（sh）与 bash
 # ============================================================
 set -e
 
@@ -29,11 +30,11 @@ if [ -f "$ROOT_DIR/requirements.txt" ]; then
         echo "  创建 Python 虚拟环境..."
         python3 -m venv "$ROOT_DIR/venv" 2>/dev/null || python -m venv "$ROOT_DIR/venv"
     fi
-    # 兼容 Linux / Windows
+    # 兼容 Linux / Windows（. 为 POSIX 语法，dash/bash 均支持）
     if [ -f "$ROOT_DIR/venv/bin/activate" ]; then
-        source "$ROOT_DIR/venv/bin/activate"
+        . "$ROOT_DIR/venv/bin/activate"
     elif [ -f "$ROOT_DIR/venv/Scripts/activate" ]; then
-        source "$ROOT_DIR/venv/Scripts/activate"
+        . "$ROOT_DIR/venv/Scripts/activate"
     fi
     pip install -r "$ROOT_DIR/requirements.txt" -q
     echo "  ✓ 后端依赖就绪"
@@ -77,9 +78,9 @@ cd "$ROOT_DIR"
 
 # 激活虚拟环境
 if [ -f "venv/bin/activate" ]; then
-    source venv/bin/activate
+    . venv/bin/activate
 elif [ -f "venv/Scripts/activate" ]; then
-    source venv/Scripts/activate
+    . venv/Scripts/activate
 fi
 
 python3 app.py 2>/dev/null || python app.py &
