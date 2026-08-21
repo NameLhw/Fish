@@ -969,6 +969,19 @@ if __name__ == "__main__":
         print()
 
         serve(app, host="0.0.0.0", port=PORT)
+    except OSError as e:
+        if "Address already in use" in str(e) or e.errno in (48, 98):
+            print()
+            print("!" * 40)
+            print(f"  ✗ 端口 {PORT} 已被占用！")
+            print(f"  可能是上次的进程未正常退出。")
+            print(f"  解决方法: 执行以下命令杀掉旧进程后重试")
+            print(f"    lsof -t -i:{PORT} | xargs kill -9")
+            print(f"  或: fuser -k {PORT}/tcp")
+            print(f"  或: pkill -f app.py")
+            print("!" * 40)
+        else:
+            raise
     except ImportError:
         import warnings
 
