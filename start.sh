@@ -206,7 +206,7 @@ fi
 if [ "$HAS_FRONTEND" = true ]; then
     if [ "$DEV_FRONTEND" = "1" ]; then
         # 开发模式：Vite dev server（HMR），仅本机可访问
-        echo "[5/5] 开发模式启动前端 (http://localhost:5173)..."
+        echo "[5/5] 开发模式启动前端 (端口 5173)..."
         cd "$FRONTEND"
         npm run dev &
         FRONTEND_PID=$!
@@ -223,18 +223,17 @@ if [ "$HAS_FRONTEND" = true ]; then
     echo "========================================"
     echo "  ✅ 全部启动成功"
     if [ "$DEV_FRONTEND" = "1" ]; then
-        echo "  前端(dev):  http://localhost:5173"
-        echo "  后端:       http://localhost:${PORT}"
+        echo "  前端(dev):  localhost:5173"
+        echo "  后端:       localhost:${PORT}"
         echo "  (dev 模式仅限本机浏览器访问)"
     else
-        echo "  后端页面:   http://localhost:${PORT}/"
-        echo "  前端页面:   http://localhost:${PORT}/app/"
+        echo "  端口: ${PORT}"
+        echo "  前端页面: /app/"
+        echo "  后端页面: /home"
         echo ""
-        echo "  ⚠ CloudStudio 用户注意:"
-        echo "    上述 localhost 仅供容器内部验证，"
-        echo "    外部浏览器请用端口面板 ${PORT} 的公网链接"
-        echo "    拼接路径 / (后端) 和 /app/ (前端)"
-        echo "    (5173 端口未暴露，不可从外部访问)"
+        echo "  CloudStudio: 请在端口面板点击"
+        echo "  ${PORT} 的公网链接即可打开前端页面"
+        echo "  (根路径 / 自动重定向到前端 /app/)"
     fi
     echo "  按 Ctrl+C 停止所有服务"
     echo "========================================"
@@ -242,8 +241,9 @@ else
     echo ""
     echo "========================================"
     echo "  ✅ 后端启动成功"
-    echo "  后端页面:   http://localhost:${PORT}/"
-    echo "  ⚠ CloudStudio 用户请用端口面板 ${PORT} 的公网链接"
+    echo "  端口: ${PORT}"
+    echo "  CloudStudio: 请在端口面板点击"
+    echo "  ${PORT} 的公网链接即可打开页面"
     echo "  按 Ctrl+C 停止服务"
     echo "========================================"
 fi

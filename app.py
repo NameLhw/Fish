@@ -138,8 +138,8 @@ def api_health():
 
 # ===================== 首页 & 商品列表 =====================
 
-@app.route("/")
-def index():
+def _render_index():
+    """商品列表页核心逻辑（供 / 和 /home 共用）"""
     page = request.args.get("page", 1, type=int)
     category_id = request.args.get("category_id", type=int)
     campus = request.args.get("campus", "")
@@ -180,6 +180,21 @@ def index():
             "sort": sort_by,
         }
     )
+
+
+@app.route("/")
+def index():
+    # CloudStudio 环境（/workspace 目录存在）且前端已构建 → 重定向到前端页面
+    # 这样 CloudStudio 自动打开公网链接时会直接看到前端，不会卡在 localhost
+    if os.path.isdir("/workspace") and os.path.isdir(FRONTEND_DIST):
+        return redirect("/app/")
+    return _render_index()
+
+
+@app.route("/home")
+def home():
+    """后端模板页面入口（CloudStudio 下 / 会重定向到前端，此路由保留后端页面）"""
+    return _render_index()
 
 
 # ===================== 商品详情 =====================
@@ -959,12 +974,14 @@ if __name__ == "__main__":
         print()
         print("=" * 40)
         print("  校园版咸鱼 服务已启动")
-        print(f"  后端页面: http://127.0.0.1:{PORT}/")
-        print(f"  前端页面: http://127.0.0.1:{PORT}/app/  (需先 npm run build)")
+        print(f"  监听端口: {PORT}")
+        print("  前端页面: /app/  (需先 npm run build)")
+        print("  后端页面: /home  (后端模板页)")
+        print("  健康检查: /api/health")
         print("  管理员账号: admin / admin123")
-        print("  提示: CloudStudio 用户请用端口面板中")
-        print(f"        {PORT} 端口的公网链接访问上述路径")
-        print("  按 Ctrl+C 停止服务")
+        print()
+        print("  CloudStudio: 请在端口面板点击")
+        print(f"  {PORT} 的公网链接即可打开页面")
         print("=" * 40)
         print()
 
