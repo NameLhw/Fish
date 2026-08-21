@@ -4,6 +4,8 @@ import { fileURLToPath, URL } from 'node:url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  // 相对路径 base：构建产物可由 Flask 在 /app/ 子路径下托管（CloudStudio 单端口）
+  base: './',
   plugins: [vue()],
   resolve: {
     alias: {

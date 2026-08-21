@@ -104,7 +104,24 @@ def inject_globals():
     }
 
 
-# ===================== 首页 & 商品列表 =====================
+# ===================== 前端构建产物托管（CloudStudio 单端口） =====================
+# 前端 npm run build 后由 Flask 在 /app/ 下托管，
+# CloudStudio 只需暴露 8000 端口即可同时访问后端模板页面和前端页面。
+
+FRONTEND_DIST = os.path.join(app.root_path, "frontend", "dist")
+
+
+@app.route("/app/")
+@app.route("/app/<path:filename>")
+def frontend_app(filename="index.html"):
+    """托管 Vue 构建产物，访问地址：/app/"""
+    if not os.path.isdir(FRONTEND_DIST):
+        abort(404, description="前端尚未构建，请在 frontend 目录执行 npm run build")
+    # SPA 前端路由回退到 index.html（当前无 vue-router，预留兼容）
+    if not os.path.isfile(os.path.join(FRONTEND_DIST, filename)):
+        filename = "index.html"
+    return send_from_directory(FRONTEND_DIST, filename)
+
 
 @app.route("/api/health")
 def api_health():
@@ -118,6 +135,8 @@ def api_health():
         },
     }
 
+
+# ===================== 首页 & 商品列表 =====================
 
 @app.route("/")
 def index():

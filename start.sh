@@ -92,17 +92,32 @@ echo "  ✓ 后端已启动 (PID: $BACKEND_PID)"
 
 # ---------- 启动前端 ----------
 if [ "$HAS_FRONTEND" = true ]; then
-    echo "[5/5] 启动前端 (http://localhost:5173)..."
-
-    cd "$FRONTEND"
-    npm run dev &
-    FRONTEND_PID=$!
-    cd "$ROOT_DIR"
+    if [ "$DEV_FRONTEND" = "1" ]; then
+        # 开发模式：Vite dev server（HMR 热更新），仅本机/局域网可访问
+        echo "[5/5] 开发模式启动前端 (http://localhost:5173)..."
+        cd "$FRONTEND"
+        npm run dev &
+        FRONTEND_PID=$!
+        cd "$ROOT_DIR"
+        echo "  前端(dev): http://localhost:5173"
+    else
+        # 生产/云环境模式：构建前端，由后端在 8000 端口的 /app/ 下托管
+        # CloudStudio 只暴露一个端口时，外部也能直接访问前端
+        echo "[5/5] 构建前端并由后端托管 (/app/)..."
+        cd "$FRONTEND"
+        npm run build
+        cd "$ROOT_DIR"
+        echo "  前端(托管): http://localhost:${PORT}/app/"
+    fi
 
     echo ""
     echo "========================================"
     echo "  ✅ 全部启动成功"
-    echo "  前端:  http://localhost:5173"
+    if [ "$DEV_FRONTEND" = "1" ]; then
+        echo "  前端:  http://localhost:5173"
+    else
+        echo "  前端:  http://localhost:${PORT}/app/"
+    fi
     echo "  后端:  http://localhost:${PORT}"
     echo "  按 Ctrl+C 停止所有服务"
     echo "========================================"
