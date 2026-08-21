@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}管理后台{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h2 class="page-title">⚙️ 管理后台</h2>
+
+    <!-- 统计卡片 -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-num">{{ stats.total_users }}</span>
+            <span class="stat-label">总用户</span>
+            {% if stats.pending_users > 0 %}
+            <span class="stat-sub">{{ stats.pending_users }} 待审核</span>
+            {% endif %}
+        </div>
+        <div class="stat-card">
+            <span class="stat-num">{{ stats.total_products }}</span>
+            <span class="stat-label">总商品</span>
+            {% if stats.pending_products > 0 %}
+            <span class="stat-sub">{{ stats.pending_products }} 待审核</span>
+            {% endif %}
+        </div>
+        <div class="stat-card">
+            <span class="stat-num">{{ stats.total_orders }}</span>
+            <span class="stat-label">总订单</span>
+            {% if stats.active_orders > 0 %}
+            <span class="stat-sub">{{ stats.active_orders }} 进行中</span>
+            {% endif %}
+        </div>
+        <div class="stat-card">
+            <span class="stat-num">{{ stats.pending_reports }}</span>
+            <span class="stat-label">待处理举报</span>
+        </div>
+    </div>
+
+    <!-- 快捷管理 -->
+    <div class="admin-menu">
+        <a href="{{ url_for('admin_products') }}" class="admin-menu-item">
+            <span>📦</span><span>商品管理</span><span>›</span>
+        </a>
+        <a href="{{ url_for('admin_users') }}" class="admin-menu-item">
+            <span>👥</span><span>用户管理</span><span>›</span>
+        </a>
+        <a href="{{ url_for('admin_categories') }}" class="admin-menu-item">
+            <span>🏷️</span><span>分类管理</span><span>›</span>
+        </a>
+        <a href="{{ url_for('admin_reports') }}" class="admin-menu-item">
+            <span>⚠️</span><span>举报处理</span>
+            {% if stats.pending_reports > 0 %}<span class="menu-badge">{{ stats.pending_reports }}</span>{% endif %}
+            <span>›</span>
+        </a>
+    </div>
+
+    <!-- 最近用户 -->
+    <div class="admin-section">
+        <h3 class="section-title">最近注册用户</h3>
+        <div class="admin-list">
+            {% for u in recent_users %}
+            <div class="admin-list-item">
+                <span>{{ u.username }} ({{ u.student_id }})</span>
+                <span>{{ u.college }}</span>
+                <span class="status-badge status-{{ u.status }}">{{ u.status == 'approved' and '已通过' or u.status == 'pending' and '待审核' or '已拒绝' }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 最近商品 -->
+    <div class="admin-section">
+        <h3 class="section-title">最近发布商品</h3>
+        <div class="admin-list">
+            {% for p in recent_products %}
+            <div class="admin-list-item">
+                <a href="{{ url_for('product_detail', product_id=p.id) }}">{{ p.title }}</a>
+                <span>¥{{ "%.2f"|format(p.price) }}</span>
+                <span class="status-badge status-{{ p.status }}">
+                    {% if p.status == 'approved' %}已通过
+                    {% elif p.status == 'pending' %}待审核
+                    {% elif p.status == 'sold' %}已售
+                    {% elif p.status == 'off_shelf' %}已下架
+                    {% elif p.status == 'rejected' %}已驳回
+                    {% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

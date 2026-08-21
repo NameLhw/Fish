@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}用户管理{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h2 class="page-title">👥 用户管理</h2>
+
+    <div class="admin-table">
+        {% for u in users %}
+        <div class="admin-user-card">
+            <div class="admin-user-info">
+                <span class="admin-user-name">
+                    {{ u.username }}
+                    {% if u.role == 'admin' %}<span class="badge badge-admin">管理员</span>{% endif %}
+                </span>
+                <div class="admin-user-meta">
+                    <span>学号: {{ u.student_id }}</span>
+                    <span>学院: {{ u.college }}</span>
+                    {% if u.phone %}<span>📱 {{ u.phone }}</span>{% endif %}
+                    <span>注册: {{ u.created_at }}</span>
+                </div>
+            </div>
+            <div class="admin-user-actions">
+                <span class="status-badge status-{{ u.status }}">
+                    {% if u.status == 'approved' %}已通过
+                    {% elif u.status == 'pending' %}待审核
+                    {% elif u.status == 'rejected' %}已拒绝
+                    {% endif %}
+                </span>
+                {% if u.role != 'admin' %}
+                <form action="{{ url_for('admin_update_user_status', user_id=u.id) }}" method="post" style="display:inline">
+                    <input type="hidden" name="status" value="approved">
+                    <button type="submit" class="btn btn-small btn-primary" {% if u.status == 'approved' %}disabled{% endif %}>通过</button>
+                </form>
+                <form action="{{ url_for('admin_update_user_status', user_id=u.id) }}" method="post" style="display:inline">
+                    <input type="hidden" name="status" value="rejected">
+                    <button type="submit" class="btn btn-small btn-danger" {% if u.status == 'rejected' %}disabled{% endif %}>拒绝</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state"><p>暂无用户</p></div>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('admin_users', page=pagination.prev_num) }}" class="page-btn">上一页</a>
+        {% endif %}
+        <span class="page-info">{{ pagination.page }} / {{ pagination.pages }}</span>
+        {% if pagination.has_next %}
+        <a href="{{ url_for('admin_users', page=pagination.next_num) }}" class="page-btn">下一页</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

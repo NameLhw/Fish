@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}与{{ contact.username }}的聊天{% endblock %}
+
+{% block content %}
+<div class="chat-page">
+    <div class="chat-header">
+        <a href="{{ url_for('message_list') }}" class="chat-back">‹</a>
+        <div class="chat-contact-info">
+            <span class="chat-contact-name">{{ contact.username }}</span>
+            <span class="chat-contact-college">{{ contact.college }}</span>
+        </div>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+        {% if messages %}
+            {% for msg in messages %}
+            <div class="chat-msg {% if msg.sender_id == current_user.id %}msg-mine{% else %}msg-other{% endif %}">
+                <div class="msg-bubble">{{ msg.content }}</div>
+                <div class="msg-time">{{ msg.created_at }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="chat-empty">开始聊天吧 👋</div>
+        {% endif %}
+    </div>
+
+    <form method="post" class="chat-input-bar">
+        <input type="text" name="content" placeholder="输入消息..." required autocomplete="off" autofocus>
+        <button type="submit">发送</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 自动滚动到底部
+window.onload = function() {
+    var messages = document.getElementById('chat-messages');
+    messages.scrollTop = messages.scrollHeight;
+};
+</script>
+{% endblock %}

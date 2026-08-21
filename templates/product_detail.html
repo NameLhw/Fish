@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}{{ product.title }} - 校园咸鱼{% endblock %}
+
+{% block content %}
+<div class="product-detail-page">
+    <!-- 图片轮播 -->
+    <div class="product-images">
+        {% if product.images %}
+            {% for img in product.images %}
+            <img src="{{ url_for('static', filename='uploads/' + img) }}" alt="{{ product.title }}" class="detail-image">
+            {% endfor %}
+        {% else %}
+            <div class="no-image-large">📷</div>
+        {% endif %}
+    </div>
+
+    <!-- 商品基本信息 -->
+    <div class="detail-section">
+        <div class="detail-price-row">
+            <span class="detail-price">¥{{ "%.2f"|format(product.price) }}</span>
+            {% if product.original_price %}
+            <span class="detail-original-price">原价 ¥{{ "%.2f"|format(product.original_price) }}</span>
+            {% endif %}
+        </div>
+        <h1 class="detail-title">{{ product.title }}</h1>
+        <div class="detail-tags">
+            <span class="tag tag-category">{{ product.category_name }}</span>
+            <span class="tag tag-condition">{{ product.condition }}</span>
+            <span class="tag tag-campus">{{ product.campus }}</span>
+            <span class="tag tag-method">{{ product.transaction_method }}</span>
+        </div>
+        <div class="detail-stats">
+            <span>👁 {{ product.views }} 次浏览</span>
+            <span>📅 {{ product.created_at }}</span>
+        </div>
+    </div>
+
+    <!-- 商品描述 -->
+    <div class="detail-section">
+        <h2 class="section-title">商品描述</h2>
+        <p class="detail-description">{{ product.description or '暂无描述' }}</p>
+    </div>
+
+    <!-- 卖家信息 -->
+    <div class="detail-section seller-card">
+        <div class="seller-info">
+            <div class="seller-avatar">
+                {% set avatar_url = url_for('uploaded_file', filename=product.seller_avatar) if product.seller_avatar and product.seller_avatar != 'default_avatar.png' else url_for('static', filename='css/default_avatar.svg') %}
+                <img src="{{ avatar_url }}" alt="头像">
+            </div>
+            <div class="seller-details">
+                <span class="seller-name">{{ product.seller_name }}</span>
+                <span class="seller-college">{{ product.seller_college }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="detail-actions">
+        {% if current_user %}
+            {% if current_user.id == product.seller_id %}
+                <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-secondary">编辑</a>
+                <form action="{{ url_for('toggle_shelf', product_id=product.id) }}" method="post" style="display:inline">
+                    {% if product.status == 'off_shelf' %}
+                    <button type="submit" class="btn btn-primary">上架</button>
+                    {% else %}
+                    <button type="submit" class="btn btn-secondary">下架</button>
+                    {% endif %}
+                </form>
+            {% else %}
+                <a href="{{ url_for('chat', user_id=product.seller_id) }}" class="btn btn-secondary">💬 私聊卖家</a>
+                {% if existing_order %}
+                    <a href="{{ url_for('order_list') }}" class="btn btn-primary">查看订单</a>
+                {% else %}
+                    <form action="{{ url_for('create_order', product_id=product.id) }}" method="post" style="display:inline">
+                        <input type="hidden" name="remark" value="我想购买这件商品">
+                        <button type="submit" class="btn btn-primary">🛒 我要买</button>
+                    </form>
+                {% endif %}
+                <button class="btn btn-outline" onclick="toggleReportForm()">⚠ 举报</button>
+            {% endif %}
+        {% else %}
+            <a href="{{ url_for('login') }}" class="btn btn-primary">登录后购买</a>
+        {% endif %}
+    </div>
+
+    <!-- 举报表单 -->
+    <div id="report-form" class="report-form" style="display:none;">
+        <form action="{{ url_for('report_product', product_id=product.id) }}" method="post">
+            <textarea name="reason" placeholder="请填写举报原因..." required></textarea>
+            <button type="submit" class="btn btn-danger">提交举报</button>
+        </form>
+    </div>
+
+    <!-- 留言区 -->
+    <div class="detail-section comments-section">
+        <h2 class="section-title">留言 ({{ comments|length }})</h2>
+        {% if comments %}
+            <div class="comment-list">
+                {% for c in comments %}
+                <div class="comment-item">
+                    <div class="comment-header">
+                        <span class="comment-author">{{ c.username }}</span>
+                        <span class="comment-time">{{ c.created_at }}</span>
+                    </div>
+                    <p class="comment-content">{{ c.content }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="no-data">暂无留言</p>
+        {% endif %}
+
+        {% if current_user %}
+        <form action="{{ url_for('add_comment', product_id=product.id) }}" method="post" class="comment-form">
+            <textarea name="content" placeholder="说点什么..." required></textarea>
+            <button type="submit" class="btn btn-primary">留言</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleReportForm() {
+    var form = document.getElementById('report-form');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}编辑资料{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <h2 class="page-title">编辑资料</h2>
+    <form method="post" enctype="multipart/form-data" class="product-form">
+        <div class="form-group">
+            <label>头像</label>
+            <input type="file" name="avatar" accept="image/*" onchange="previewAvatar(this)">
+            <div class="avatar-preview" id="avatar-preview"></div>
+        </div>
+        <div class="form-group">
+            <label>手机号</label>
+            <input type="text" name="phone" value="{{ current_user.phone or '' }}" placeholder="请输入手机号">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">保存</button>
+        <a href="{{ url_for('profile') }}" class="btn btn-secondary btn-full">返回</a>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewAvatar(input) {
+    var preview = document.getElementById('avatar-preview');
+    preview.innerHTML = '';
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'preview-img';
+            preview.appendChild(img);
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}校园咸鱼 - 首页{% endblock %}
+
+{% block content %}
+<!-- 筛选栏 -->
+<div class="filter-bar">
+    <!-- 分类标签 -->
+    <div class="filter-row">
+        <a href="{{ url_for('index', campus=filters.campus, condition=filters.condition, keyword=filters.keyword, sort=filters.sort) }}"
+           class="filter-tag {% if not filters.category_id %}active{% endif %}">全部</a>
+        {% for cat in all_categories %}
+        <a href="{{ url_for('index', category_id=cat.id, campus=filters.campus, condition=filters.condition, keyword=filters.keyword, sort=filters.sort) }}"
+           class="filter-tag {% if filters.category_id == cat.id %}active{% endif %}">{{ cat.name }}</a>
+        {% endfor %}
+    </div>
+
+    <!-- 下拉筛选 -->
+    <div class="filter-row">
+        <select class="filter-select" onchange="window.location.href=this.value">
+            <option value="{{ url_for('index', category_id=filters.category_id, condition=filters.condition, keyword=filters.keyword, sort=filters.sort) }}">全部校区</option>
+            {% for c in campuses %}
+            <option value="{{ url_for('index', campus=c, category_id=filters.category_id, condition=filters.condition, keyword=filters.keyword, sort=filters.sort) }}"
+                    {% if filters.campus == c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+        </select>
+
+        <select class="filter-select" onchange="window.location.href=this.value">
+            <option value="{{ url_for('index', category_id=filters.category_id, campus=filters.campus, keyword=filters.keyword, sort=filters.sort) }}">全部成色</option>
+            {% for cond in conditions %}
+            <option value="{{ url_for('index', condition=cond, category_id=filters.category_id, campus=filters.campus, keyword=filters.keyword, sort=filters.sort) }}"
+                    {% if filters.condition == cond %}selected{% endif %}>{{ cond }}</option>
+            {% endfor %}
+        </select>
+
+        <select class="filter-select" onchange="window.location.href=this.value">
+            <option value="{{ url_for('index', category_id=filters.category_id, campus=filters.campus, condition=filters.condition, keyword=filters.keyword) }}"
+                    {% if not filters.sort or filters.sort == 'newest' %}selected{% endif %}>最新发布</option>
+            <option value="{{ url_for('index', sort='price_asc', category_id=filters.category_id, campus=filters.campus, condition=filters.condition, keyword=filters.keyword) }}"
+                    {% if filters.sort == 'price_asc' %}selected{% endif %}>价格从低到高</option>
+            <option value="{{ url_for('index', sort='price_desc', category_id=filters.category_id, campus=filters.campus, condition=filters.condition, keyword=filters.keyword) }}"
+                    {% if filters.sort == 'price_desc' %}selected{% endif %}>价格从高到低</option>
+        </select>
+    </div>
+</div>
+
+<!-- 商品列表 -->
+<div class="product-grid" id="product-list">
+    {% if products %}
+        {% for product in products %}
+        <a href="{{ url_for('product_detail', product_id=product.id) }}" class="product-card">
+            <div class="product-image">
+                {% if product.images %}
+                <img src="{{ url_for('static', filename='uploads/' + product.images[0]) }}" alt="{{ product.title }}">
+                {% else %}
+                <div class="no-image">📷</div>
+                {% endif %}
+            </div>
+            <div class="product-info">
+                <h3 class="product-title">{{ product.title }}</h3>
+                <div class="product-meta">
+                    <span class="product-price">¥{{ "%.2f"|format(product.price) }}</span>
+                    {% if product.original_price %}
+                    <span class="product-original-price">¥{{ "%.2f"|format(product.original_price) }}</span>
+                    {% endif %}
+                </div>
+                <div class="product-tags">
+                    <span class="tag tag-campus">{{ product.campus }}</span>
+                    <span class="tag tag-condition">{{ product.condition }}</span>
+                </div>
+                <div class="product-footer">
+                    <span class="seller-name">{{ product.seller_name }}</span>
+                    <span class="product-views">👁 {{ product.views }}</span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <p>📭 暂无商品</p>
+            {% if current_user %}
+            <a href="{{ url_for('publish_product') }}" class="btn btn-primary">发布第一件商品</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- 分页 -->
+{% if pagination.pages > 1 %}
+<div class="pagination">
+    {% if pagination.has_prev %}
+    <a href="{{ url_for('index', page=pagination.prev_num, category_id=filters.category_id, campus=filters.campus, condition=filters.condition, keyword=filters.keyword, sort=filters.sort) }}" class="page-btn">上一页</a>
+    {% endif %}
+    <span class="page-info">{{ pagination.page }} / {{ pagination.pages }}</span>
+    {% if pagination.has_next %}
+    <a href="{{ url_for('index', page=pagination.next_num, category_id=filters.category_id, campus=filters.campus, condition=filters.condition, keyword=filters.keyword, sort=filters.sort) }}" class="page-btn">下一页</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

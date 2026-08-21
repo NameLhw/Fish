@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}我的商品{% endblock %}
+
+{% block content %}
+<div class="list-page">
+    <div class="list-header">
+        <h2 class="page-title">📦 我的商品</h2>
+        <a href="{{ url_for('publish_product') }}" class="btn btn-primary">发布新品</a>
+    </div>
+
+    <div class="product-grid">
+        {% if products %}
+            {% for product in products %}
+            <div class="product-card">
+                <a href="{{ url_for('product_detail', product_id=product.id) }}">
+                    <div class="product-image">
+                        {% if product.images %}
+                        <img src="{{ url_for('static', filename='uploads/' + product.images[0]) }}" alt="{{ product.title }}">
+                        {% else %}
+                        <div class="no-image">📷</div>
+                        {% endif %}
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">{{ product.title }}</h3>
+                        <div class="product-meta">
+                            <span class="product-price">¥{{ "%.2f"|format(product.price) }}</span>
+                        </div>
+                        <div class="product-tags">
+                            <span class="status-badge status-{{ product.status }}">
+                                {% if product.status == 'approved' %}在售
+                                {% elif product.status == 'pending' %}待审核
+                                {% elif product.status == 'sold' %}已售出
+                                {% elif product.status == 'off_shelf' %}已下架
+                                {% elif product.status == 'rejected' %}已驳回
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                </a>
+                <div class="product-actions">
+                    <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-small btn-secondary">编辑</a>
+                    <form action="{{ url_for('delete_product', product_id=product.id) }}" method="post" style="display:inline"
+                          onsubmit="return confirm('确认删除此商品?')">
+                        <button type="submit" class="btn btn-small btn-danger">删除</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <p>📦 您还没有发布任何商品</p>
+                <a href="{{ url_for('publish_product') }}" class="btn btn-primary">发布第一件商品</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

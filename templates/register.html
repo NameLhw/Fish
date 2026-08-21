@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}注册{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <h1 class="auth-title">注册账号</h1>
+        <p class="auth-subtitle">校园实名认证 · 安全交易</p>
+
+        <form method="post" class="auth-form">
+            <div class="form-group">
+                <label>用户名 <span class="required">*</span></label>
+                <input type="text" name="username" required placeholder="请设置用户名"
+                       value="{{ request.form.get('username', '') }}">
+            </div>
+            <div class="form-group">
+                <label>密码 <span class="required">*</span></label>
+                <input type="password" name="password" required placeholder="请设置密码">
+            </div>
+            <div class="form-group">
+                <label>学号 <span class="required">*</span></label>
+                <input type="text" name="student_id" required placeholder="请输入学号"
+                       value="{{ request.form.get('student_id', '') }}">
+            </div>
+            <div class="form-group">
+                <label>学院 <span class="required">*</span></label>
+                <input type="text" name="college" required placeholder="请输入所在学院"
+                       value="{{ request.form.get('college', '') }}">
+            </div>
+            <div class="form-group">
+                <label>手机号（选填）</label>
+                <input type="text" name="phone" placeholder="请输入手机号"
+                       value="{{ request.form.get('phone', '') }}">
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">注册</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>已有账号？ <a href="{{ url_for('login') }}">立即登录</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

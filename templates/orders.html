@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}我的订单{% endblock %}
+
+{% block content %}
+<div class="list-page">
+    <h2 class="page-title">📋 我的订单</h2>
+
+    <!-- 标签切换 -->
+    <div class="tab-bar">
+        <a href="{{ url_for('order_list', tab='all') }}" class="tab {% if tab == 'all' %}active{% endif %}">全部</a>
+        <a href="{{ url_for('order_list', tab='buyer') }}" class="tab {% if tab == 'buyer' %}active{% endif %}">我买的</a>
+        <a href="{{ url_for('order_list', tab='seller') }}" class="tab {% if tab == 'seller' %}active{% endif %}">我卖的</a>
+    </div>
+
+    <!-- 订单列表 -->
+    <div class="order-list">
+        {% if orders %}
+            {% for order in orders %}
+            <div class="order-card">
+                <div class="order-header">
+                    <span class="order-id">订单 #{{ order.id }}</span>
+                    <span class="order-status status-{{ order.status }}">{{ order.status_text }}</span>
+                </div>
+                <div class="order-product">
+                    <a href="{{ url_for('product_detail', product_id=order.product_id) }}" class="order-product-link">
+                        <span class="order-product-title">{{ order.product_title }}</span>
+                        <span class="order-product-price">¥{{ "%.2f"|format(order.product_price) }}</span>
+                    </a>
+                </div>
+                <div class="order-people">
+                    <span>买家: {{ order.buyer_name }}</span>
+                    <span>卖家: {{ order.seller_name }}</span>
+                </div>
+                {% if order.meeting_location %}
+                <div class="order-meeting">
+                    <span>📍 {{ order.meeting_location }}</span>
+                    {% if order.meeting_time %}<span>🕐 {{ order.meeting_time }}</span>{% endif %}
+                </div>
+                {% endif %}
+                {% if order.remark %}
+                <div class="order-remark">备注: {{ order.remark }}</div>
+                {% endif %}
+                <div class="order-time">创建于 {{ order.created_at }}</div>
+
+                <!-- 状态操作 -->
+                <div class="order-actions">
+                    {% if order.status == 'pending_communication' %}
+                        {% if current_user.id == order.seller_id %}
+                        <form action="{{ url_for('update_order_status', order_id=order.id) }}" method="post" style="display:inline">
+                            <input type="hidden" name="status" value="pending_transaction">
+                            <input type="text" name="meeting_location" placeholder="约定交易地点" class="inline-input">
+                            <input type="text" name="meeting_time" placeholder="约定时间" class="inline-input">
+                            <button type="submit" class="btn btn-small btn-primary">约定交易</button>
+                        </form>
+                        {% endif %}
+                        <a href="{{ url_for('chat', user_id=order.seller_id if current_user.id == order.buyer_id else order.buyer_id) }}"
+                           class="btn btn-small btn-secondary">💬 沟通</a>
+                        <form action="{{ url_for('update_order_status', order_id=order.id) }}" method="post" style="display:inline"
+                              onsubmit="return confirm('确认取消订单?')">
+                            <input type="hidden" name="status" value="cancelled">
+                            <button type="submit" class="btn btn-small btn-danger">取消</button>
+                        </form>
+                    {% elif order.status == 'pending_transaction' %}
+                        <form action="{{ url_for('update_order_status', order_id=order.id) }}" method="post" style="display:inline"
+                              onsubmit="return confirm('确认交易完成?')">
+                            <input type="hidden" name="status" value="completed">
+                            <button type="submit" class="btn btn-small btn-primary">确认完成</button>
+                        </form>
+                        <form action="{{ url_for('update_order_status', order_id=order.id) }}" method="post" style="display:inline"
+                              onsubmit="return confirm('确认取消订单?')">
+                            <input type="hidden" name="status" value="cancelled">
+                            <button type="submit" class="btn btn-small btn-danger">取消</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <p>📋 暂无订单</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

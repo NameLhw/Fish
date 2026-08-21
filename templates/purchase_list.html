@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}求购大厅{% endblock %}
+
+{% block content %}
+<div class="list-page">
+    <div class="list-header">
+        <h2 class="page-title">📢 求购大厅</h2>
+        {% if current_user %}
+        <a href="{{ url_for('create_purchase_request') }}" class="btn btn-primary">发布求购</a>
+        {% endif %}
+    </div>
+
+    <!-- 搜索 -->
+    <form action="{{ url_for('purchase_request_list') }}" method="get" class="search-form">
+        <input type="text" name="keyword" placeholder="搜索求购信息..."
+               value="{{ keyword }}">
+        <button type="submit">🔍</button>
+    </form>
+
+    <!-- 求购列表 -->
+    <div class="request-list">
+        {% if requests %}
+            {% for req in requests %}
+            <div class="request-card">
+                <div class="request-header">
+                    <h3 class="request-title">{{ req.item_name }}</h3>
+                    <span class="request-status status-{{ req.status }}">{{ req.status == 'active' and '求购中' or '已关闭' }}</span>
+                </div>
+                <div class="request-meta">
+                    {% if req.budget_max %}
+                    <span class="request-budget">💰 预算: ¥{{ "%.0f"|format(req.budget_min or 0) }} - ¥{{ "%.0f"|format(req.budget_max) }}</span>
+                    {% endif %}
+                    {% if req.expected_condition %}
+                    <span class="tag tag-condition">{{ req.expected_condition }}</span>
+                    {% endif %}
+                    {% if req.campus %}
+                    <span class="tag tag-campus">{{ req.campus }}</span>
+                    {% endif %}
+                </div>
+                {% if req.description %}
+                <p class="request-desc">{{ req.description }}</p>
+                {% endif %}
+                <div class="request-footer">
+                    <span class="request-author">👤 {{ req.username }} · {{ req.college }}</span>
+                    <span class="request-time">{{ req.created_at }}</span>
+                </div>
+                <div class="request-actions">
+                    {% if current_user and current_user.id != req.user_id %}
+                    <a href="{{ url_for('chat', user_id=req.user_id) }}" class="btn btn-small btn-secondary">联系TA</a>
+                    {% endif %}
+                    {% if current_user and (current_user.id == req.user_id or current_user.is_admin) %}
+                    <form action="{{ url_for('delete_purchase_request', pr_id=req.id) }}" method="post" style="display:inline"
+                          onsubmit="return confirm('确认删除这条求购信息?')">
+                        <button type="submit" class="btn btn-small btn-danger">删除</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <p>📭 暂无求购信息</p>
+                {% if current_user %}
+                <a href="{{ url_for('create_purchase_request') }}" class="btn btn-primary">发布第一条求购</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- 分页 -->
+    {% if pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('purchase_request_list', page=pagination.prev_num, keyword=keyword) }}" class="page-btn">上一页</a>
+        {% endif %}
+        <span class="page-info">{{ pagination.page }} / {{ pagination.pages }}</span>
+        {% if pagination.has_next %}
+        <a href="{{ url_for('purchase_request_list', page=pagination.next_num, keyword=keyword) }}" class="page-btn">下一页</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

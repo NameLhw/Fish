@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}商品管理{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h2 class="page-title">📦 商品管理</h2>
+
+    <!-- 状态筛选 -->
+    <div class="tab-bar">
+        <a href="{{ url_for('admin_products') }}" class="tab {% if not status_filter %}active{% endif %}">全部</a>
+        <a href="{{ url_for('admin_products', status='pending') }}" class="tab {% if status_filter == 'pending' %}active{% endif %}">待审核</a>
+        <a href="{{ url_for('admin_products', status='approved') }}" class="tab {% if status_filter == 'approved' %}active{% endif %}">已通过</a>
+        <a href="{{ url_for('admin_products', status='off_shelf') }}" class="tab {% if status_filter == 'off_shelf' %}active{% endif %}">已下架</a>
+        <a href="{{ url_for('admin_products', status='rejected') }}" class="tab {% if status_filter == 'rejected' %}active{% endif %}">已驳回</a>
+    </div>
+
+    <!-- 商品列表 -->
+    <div class="admin-table">
+        {% for product in products %}
+        <div class="admin-product-card">
+            <div class="admin-product-info">
+                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="admin-product-title">{{ product.title }}</a>
+                <div class="admin-product-meta">
+                    <span>¥{{ "%.2f"|format(product.price) }}</span>
+                    <span>{{ product.category_name }}</span>
+                    <span>{{ product.campus }}</span>
+                    <span>{{ product.seller_name }}</span>
+                    <span>{{ product.created_at }}</span>
+                    <span class="status-badge status-{{ product.status }}">
+                        {% if product.status == 'approved' %}已通过
+                        {% elif product.status == 'pending' %}待审核
+                        {% elif product.status == 'sold' %}已售
+                        {% elif product.status == 'off_shelf' %}已下架
+                        {% elif product.status == 'rejected' %}已驳回
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="admin-product-actions">
+                {% if product.status == 'pending' %}
+                <form action="{{ url_for('admin_review_product', product_id=product.id) }}" method="post" style="display:inline">
+                    <input type="hidden" name="action" value="approve">
+                    <button type="submit" class="btn btn-small btn-primary">通过</button>
+                </form>
+                <form action="{{ url_for('admin_review_product', product_id=product.id) }}" method="post" style="display:inline">
+                    <input type="hidden" name="action" value="reject">
+                    <button type="submit" class="btn btn-small btn-danger">驳回</button>
+                </form>
+                {% endif %}
+                {% if product.status in ['approved', 'pending'] %}
+                <form action="{{ url_for('admin_review_product', product_id=product.id) }}" method="post" style="display:inline"
+                      onsubmit="return confirm('确认强制下架?')">
+                    <input type="hidden" name="action" value="off_shelf">
+                    <button type="submit" class="btn btn-small btn-secondary">下架</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state"><p>暂无商品</p></div>
+        {% endfor %}
+    </div>
+
+    {% if pagination.pages > 1 %}
+    <div class="pagination">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('admin_products', page=pagination.prev_num, status=status_filter) }}" class="page-btn">上一页</a>
+        {% endif %}
+        <span class="page-info">{{ pagination.page }} / {{ pagination.pages }}</span>
+        {% if pagination.has_next %}
+        <a href="{{ url_for('admin_products', page=pagination.next_num, status=status_filter) }}" class="page-btn">下一页</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

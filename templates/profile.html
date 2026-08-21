@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}个人中心{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <!-- 用户信息卡 -->
+    <div class="profile-card">
+        <div class="profile-avatar">
+            {% set avatar_url = url_for('uploaded_file', filename=current_user.avatar) if current_user.avatar and current_user.avatar != 'default_avatar.png' else url_for('static', filename='css/default_avatar.svg') %}
+            <img src="{{ avatar_url }}" alt="头像">
+        </div>
+        <div class="profile-info">
+            <h2>{{ current_user.username }}</h2>
+            <p>{{ current_user.college }} · 学号 {{ current_user.student_id }}</p>
+            {% if current_user.phone %}<p>📞 {{ current_user.phone }}</p>{% endif %}
+            {% if current_user.is_admin %}
+            <span class="badge badge-admin">管理员</span>
+            {% endif %}
+            <a href="{{ url_for('edit_profile') }}" class="btn btn-small btn-outline">编辑资料</a>
+        </div>
+    </div>
+
+    <!-- 快捷入口 -->
+    <div class="profile-menu">
+        <a href="{{ url_for('my_products') }}" class="menu-item">
+            <span class="menu-icon">📦</span>
+            <span class="menu-label">我的商品</span>
+            <span class="menu-arrow">›</span>
+        </a>
+        <a href="{{ url_for('order_list') }}" class="menu-item">
+            <span class="menu-icon">📋</span>
+            <span class="menu-label">我的订单</span>
+            <span class="menu-arrow">›</span>
+        </a>
+        <a href="{{ url_for('message_list') }}" class="menu-item">
+            <span class="menu-icon">💬</span>
+            <span class="menu-label">我的消息</span>
+            {% if unread_count > 0 %}
+            <span class="menu-badge">{{ unread_count }}</span>
+            {% endif %}
+            <span class="menu-arrow">›</span>
+        </a>
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('admin_dashboard') }}" class="menu-item menu-admin">
+            <span class="menu-icon">⚙️</span>
+            <span class="menu-label">管理后台</span>
+            <span class="menu-arrow">›</span>
+        </a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}" class="menu-item menu-logout">
+            <span class="menu-icon">🚪</span>
+            <span class="menu-label">退出登录</span>
+            <span class="menu-arrow">›</span>
+        </a>
+    </div>
+
+    <!-- 我的求购 -->
+    <div class="profile-section">
+        <h3 class="section-title">我的求购</h3>
+        {% if my_requests %}
+            {% for req in my_requests %}
+            <div class="mini-card">
+                <span class="mini-title">{{ req.item_name }}</span>
+                {% if req.budget_max %}
+                <span class="mini-price">¥{{ "%.0f"|format(req.budget_max) }}</span>
+                {% endif %}
+                <span class="mini-status status-{{ req.status }}">{{ req.status == 'active' and '求购中' or '已关闭' }}</span>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="no-data">暂无求购信息</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

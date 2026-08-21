@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}消息列表{% endblock %}
+
+{% block content %}
+<div class="list-page">
+    <h2 class="page-title">💬 消息</h2>
+
+    <div class="conversation-list">
+        {% if conversations %}
+            {% for conv in conversations %}
+            <a href="{{ url_for('chat', user_id=conv.contact_id) }}" class="conversation-item">
+                <div class="conv-avatar">
+                    {% set avatar_url = url_for('uploaded_file', filename=conv.contact_avatar) if conv.contact_avatar and conv.contact_avatar != 'default_avatar.png' else url_for('static', filename='css/default_avatar.svg') %}
+                    <img src="{{ avatar_url }}" alt="头像">
+                </div>
+                <div class="conv-info">
+                    <div class="conv-header">
+                        <span class="conv-name">{{ conv.contact_name }}</span>
+                        <span class="conv-time">{{ conv.latest_time }}</span>
+                    </div>
+                    <div class="conv-preview">
+                        <span class="conv-college">{{ conv.contact_college }}</span>
+                        <span class="conv-last">{{ conv.latest_content }}</span>
+                    </div>
+                </div>
+                {% if conv.unread > 0 %}
+                <span class="conv-badge">{{ conv.unread }}</span>
+                {% endif %}
+            </a>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <p>💬 暂无消息</p>
+                <p>浏览商品时可以和卖家私聊哦</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

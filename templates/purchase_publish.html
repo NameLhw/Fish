@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}发布求购{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <h2 class="page-title">📢 发布求购信息</h2>
+    <form method="post" class="product-form">
+        <div class="form-group">
+            <label>物品名称 <span class="required">*</span></label>
+            <input type="text" name="item_name" required placeholder="例：高等数学第七版" maxlength="200">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>预算下限</label>
+                <input type="number" name="budget_min" step="0.01" min="0" placeholder="0.00">
+            </div>
+            <div class="form-group">
+                <label>预算上限</label>
+                <input type="number" name="budget_max" step="0.01" min="0" placeholder="0.00">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>期望成色</label>
+            <select name="expected_condition">
+                <option value="">不限</option>
+                {% for cond in conditions %}
+                <option value="{{ cond }}">{{ cond }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>期望校区</label>
+            <select name="campus">
+                <option value="">不限</option>
+                {% for c in campuses %}
+                <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>补充描述</label>
+            <textarea name="description" rows="4" placeholder="描述你想要的物品详情..."></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">发布求购</button>
+        <a href="{{ url_for('purchase_request_list') }}" class="btn btn-secondary btn-full">返回</a>
+    </form>
+</div>
+{% endblock %}

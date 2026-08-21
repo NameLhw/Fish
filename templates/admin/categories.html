@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}分类管理{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+    <h2 class="page-title">🏷️ 分类管理</h2>
+
+    <!-- 添加分类 -->
+    <form method="post" class="inline-form">
+        <input type="text" name="name" placeholder="分类名称" required>
+        <input type="number" name="sort" placeholder="排序" value="0" style="width:80px">
+        <button type="submit" class="btn btn-primary">添加</button>
+    </form>
+
+    <!-- 分类列表 -->
+    <div class="admin-table">
+        {% for cat in categories %}
+        <div class="admin-cat-card">
+            <span class="cat-name">{{ cat.name }}</span>
+            <span class="cat-count">{{ cat.products.count() }} 件商品</span>
+            <span class="cat-sort">排序: {{ cat.sort }}</span>
+            <form action="{{ url_for('admin_delete_category', cat_id=cat.id) }}" method="post" style="display:inline"
+                  onsubmit="return confirm('确认删除此分类?')">
+                <button type="submit" class="btn btn-small btn-danger">删除</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="empty-state"><p>暂无分类</p></div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
