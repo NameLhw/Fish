@@ -16,6 +16,22 @@ FRONTEND="$ROOT_DIR/frontend"
 # 后端端口（CloudStudio / 前端代理模式用 8000，匹配 vite proxy）
 export PORT="${PORT:-8000}"
 
+# 选择 Python 解释器：优先使用 venv 内的解释器（最可靠），
+# 避免 Windows 的 WindowsApps python3 商店 stub（执行会静默退出）
+pick_python() {
+    if [ -f "venv/bin/python3" ]; then
+        PY_CMD="venv/bin/python3"
+    elif [ -f "venv/bin/python" ]; then
+        PY_CMD="venv/bin/python"
+    elif [ -f "venv/Scripts/python.exe" ]; then
+        PY_CMD="venv/Scripts/python.exe"
+    elif command -v python3 >/dev/null 2>&1; then
+        PY_CMD=python3
+    else
+        PY_CMD=python
+    fi
+}
+
 echo "========================================"
 echo "  校园版咸鱼 — 一键启动"
 echo "========================================"
@@ -26,17 +42,19 @@ echo "[1/5] 安装后端依赖..."
 
 # 后端就在项目根目录（app.py / requirements.txt 在此）
 if [ -f "$ROOT_DIR/requirements.txt" ]; then
-    if [ ! -d "$ROOT_DIR/venv" ]; then
+    cd "$ROOT_DIR"
+    if [ ! -d "venv" ]; then
         echo "  创建 Python 虚拟环境..."
-        python3 -m venv "$ROOT_DIR/venv" 2>/dev/null || python -m venv "$ROOT_DIR/venv"
+        python3 -m venv venv 2>/dev/null || python -m venv venv
     fi
     # 兼容 Linux / Windows（. 为 POSIX 语法，dash/bash 均支持）
-    if [ -f "$ROOT_DIR/venv/bin/activate" ]; then
-        . "$ROOT_DIR/venv/bin/activate"
-    elif [ -f "$ROOT_DIR/venv/Scripts/activate" ]; then
-        . "$ROOT_DIR/venv/Scripts/activate"
+    if [ -f "venv/bin/activate" ]; then
+        . venv/bin/activate
+    elif [ -f "venv/Scripts/activate" ]; then
+        . venv/Scripts/activate
     fi
-    pip install -r "$ROOT_DIR/requirements.txt" -q
+    # 注意：用相对路径调用 pip，避免中文路径传参乱码（Windows Git Bash）
+    pip install -r requirements.txt -q
     echo "  ✓ 后端依赖就绪"
 else
     echo "  ⚠ 未找到 requirements.txt，跳过"
@@ -47,7 +65,8 @@ echo "[2/5] 检查数据库..."
 if [ ! -f "$ROOT_DIR/campus_flea.db" ]; then
     echo "  初始化数据库..."
     cd "$ROOT_DIR"
-    python3 init_db.py 2>/dev/null || python init_db.py
+    pick_python
+    "$PY_CMD" init_db.py
     echo "  ✓ 数据库已初始化"
 else
     echo "  ✓ 数据库已存在"
@@ -83,12 +102,49 @@ elif [ -f "venv/Scripts/activate" ]; then
     . venv/Scripts/activate
 fi
 
-python3 app.py 2>/dev/null || python app.py &
+# 选择 Python 解释器（提前确定，确保 $! 是 python 进程真实 PID，
+# 否则 Ctrl+C 时 kill 不到 python，会留下孤儿进程占用端口）
+pick_python
+
+# 清理占用端口的残留进程（防止 "Address already in use" 报错）
+OLD_PIDS=""
+if command -v lsof >/dev/null 2>&1; then
+    OLD_PIDS=$(lsof -t -i:"${PORT}" 2>/dev/null)
+elif command -v fuser >/dev/null 2>&1; then
+    OLD_PIDS=$(fuser "${PORT}/tcp" 2>/dev/null)
+fi
+if [ -n "$OLD_PIDS" ]; then
+    echo "  ⚠ 端口 ${PORT} 被旧进程占用 (PID: ${OLD_PIDS})，正在清理..."
+    kill $OLD_PIDS 2>/dev/null
+    sleep 1
+    kill -9 $OLD_PIDS 2>/dev/null
+    sleep 1
+fi
+
+"$PY_CMD" app.py &
 BACKEND_PID=$!
 
-# 等待后端就绪
-sleep 2
-echo "  ✓ 后端已启动 (PID: $BACKEND_PID)"
+# 轮询健康接口校验后端真正就绪（curl 探测比 kill -0 跨环境更可靠，
+# 例如 Windows Git Bash 后台任务中 $! 是包装进程，kill -0 会误判）
+BACKEND_READY=0
+i=0
+while [ $i -lt 15 ]; do
+    if curl -s "http://127.0.0.1:${PORT}/api/health" >/dev/null 2>&1; then
+        BACKEND_READY=1
+        break
+    fi
+    kill -0 "$BACKEND_PID" 2>/dev/null || break
+    sleep 1
+    i=$((i + 1))
+done
+
+if [ "$BACKEND_READY" -eq 1 ]; then
+    echo "  ✓ 后端已启动 (PID: $BACKEND_PID)"
+else
+    echo "  ✗ 后端启动失败（端口 ${PORT} 无响应）"
+    echo "    常见原因: 端口被占用 / 依赖缺失，请查看上方错误信息"
+    exit 1
+fi
 
 # ---------- 启动前端 ----------
 if [ "$HAS_FRONTEND" = true ]; then
@@ -143,10 +199,13 @@ fi
 cleanup() {
     echo ""
     echo "正在停止服务..."
-    kill $BACKEND_PID 2>/dev/null
-    [ -n "$FRONTEND_PID" ] && kill $FRONTEND_PID 2>/dev/null
-    wait $BACKEND_PID 2>/dev/null
-    [ -n "$FRONTEND_PID" ] && wait $FRONTEND_PID 2>/dev/null
+    kill "$BACKEND_PID" 2>/dev/null
+    [ -n "$FRONTEND_PID" ] && kill "$FRONTEND_PID" 2>/dev/null
+    # 兜底清理残留进程（npm/vite 是孙进程，kill npm 杀不到它们）
+    pkill -f "app\.py" 2>/dev/null
+    pkill -f "vite" 2>/dev/null
+    wait "$BACKEND_PID" 2>/dev/null
+    [ -n "$FRONTEND_PID" ] && wait "$FRONTEND_PID" 2>/dev/null
     echo "已停止。"
     exit 0
 }
