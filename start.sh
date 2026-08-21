@@ -20,9 +20,9 @@ echo "========================================"
 echo "  校园版咸鱼 — 一键启动"
 echo "========================================"
 
-# ---------- [1/4] 后端依赖 ----------
+# ---------- [1/5] 后端依赖 ----------
 echo ""
-echo "[1/4] 安装后端依赖..."
+echo "[1/5] 安装后端依赖..."
 
 # 后端就在项目根目录（app.py / requirements.txt 在此）
 if [ -f "$ROOT_DIR/requirements.txt" ]; then
@@ -42,8 +42,8 @@ else
     echo "  ⚠ 未找到 requirements.txt，跳过"
 fi
 
-# ---------- [2/4] 初始化数据库 ----------
-echo "[2/4] 检查数据库..."
+# ---------- [2/5] 初始化数据库 ----------
+echo "[2/5] 检查数据库..."
 if [ ! -f "$ROOT_DIR/campus_flea.db" ]; then
     echo "  初始化数据库..."
     cd "$ROOT_DIR"
@@ -72,7 +72,7 @@ fi
 
 # ---------- 启动后端 ----------
 echo ""
-echo "[4/5] 启动后端 (http://0.0.0.0:${PORT})..."
+echo "[4/5] 启动后端 (端口 ${PORT})..."
 
 cd "$ROOT_DIR"
 
@@ -114,18 +114,27 @@ if [ "$HAS_FRONTEND" = true ]; then
     echo "========================================"
     echo "  ✅ 全部启动成功"
     if [ "$DEV_FRONTEND" = "1" ]; then
-        echo "  前端:  http://localhost:5173"
+        echo "  前端(dev):  http://localhost:5173"
+        echo "  后端:       http://localhost:${PORT}"
+        echo "  (dev 模式仅限本机浏览器访问)"
     else
-        echo "  前端:  http://localhost:${PORT}/app/"
+        echo "  后端页面:   http://localhost:${PORT}/"
+        echo "  前端页面:   http://localhost:${PORT}/app/"
+        echo ""
+        echo "  ⚠ CloudStudio 用户注意:"
+        echo "    上述 localhost 地址仅供容器内部验证，"
+        echo "    外部浏览器请使用端口面板中 ${PORT} 端口"
+        echo "    的公网链接，并在其后拼接路径 / 和 /app/"
+        echo "    (5173 端口未对外暴露，无法从外部访问)"
     fi
-    echo "  后端:  http://localhost:${PORT}"
     echo "  按 Ctrl+C 停止所有服务"
     echo "========================================"
 else
     echo ""
     echo "========================================"
     echo "  ✅ 后端启动成功"
-    echo "  后端:  http://localhost:${PORT}"
+    echo "  后端页面:   http://localhost:${PORT}/"
+    echo "  ⚠ CloudStudio 用户请用端口面板中 ${PORT} 端口的公网链接访问"
     echo "  按 Ctrl+C 停止服务"
     echo "========================================"
 fi
