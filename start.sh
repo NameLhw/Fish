@@ -53,8 +53,8 @@ else
     echo "  ✓ 数据库已存在"
 fi
 
-# ---------- [3/4] 前端依赖 ----------
-echo "[3/4] 检查前端依赖..."
+# ---------- [3/5] 前端依赖 ----------
+echo "[3/5] 检查前端依赖..."
 
 if [ -d "$FRONTEND" ] && [ -f "$FRONTEND/package.json" ]; then
     cd "$FRONTEND"
@@ -72,7 +72,7 @@ fi
 
 # ---------- 启动后端 ----------
 echo ""
-echo "[3/4] 启动后端 (http://0.0.0.0:${PORT})..."
+echo "[4/5] 启动后端 (http://0.0.0.0:${PORT})..."
 
 cd "$ROOT_DIR"
 
@@ -92,7 +92,7 @@ echo "  ✓ 后端已启动 (PID: $BACKEND_PID)"
 
 # ---------- 启动前端 ----------
 if [ "$HAS_FRONTEND" = true ]; then
-    echo "[4/4] 启动前端 (http://localhost:5173)..."
+    echo "[5/5] 启动前端 (http://localhost:5173)..."
 
     cd "$FRONTEND"
     npm run dev &

@@ -106,6 +106,19 @@ def inject_globals():
 
 # ===================== 首页 & 商品列表 =====================
 
+@app.route("/api/health")
+def api_health():
+    """前端健康检查接口：验证前后端连通"""
+    return {
+        "code": 0,
+        "data": {
+            "service": "校园版咸鱼",
+            "version": "1.0.0",
+            "status": "ok",
+        },
+    }
+
+
 @app.route("/")
 def index():
     page = request.args.get("page", 1, type=int)
